@@ -2,8 +2,12 @@ import * as http from 'node:http'
 import {stat} from 'node:fs/promises'
 import * as fs from 'node:fs'
 import path from 'node:path'
+import * as mysql from 'mysql2/promises'
 
 const PORT = 8000
+const DB_URI = 'jdbc:mysql://localhost:3306/java'
+
+const pool = mysql.createPool(DB_URI)
 
 const requestHandle = async (req , res) => {
   // 1. Health-check API
