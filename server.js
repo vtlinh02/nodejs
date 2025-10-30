@@ -41,11 +41,27 @@ const requestHandle = async (req , res) => {
       res.writeHead(200, {
         'Content-Length': info.size,
         'Content-Type': contentType,
-        'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`
+        'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+        'Cache-Control': 'no-cache'
       })
 
       const readStream = fs.createReadStream(filePath)
-      readStream.pipe(res)
+
+      readStream.on('data', (chunk) => {
+        const canKeepWriting = res.write(chunk)
+
+        if(!canKeepWriting){
+          readStream.pause()
+
+          res.once('drain', () => {
+            readStream.resume()
+          })
+        }
+      })
+
+      readStream.on('close', () => {
+        res.end()
+      })
 
       readStream.on('error', () => {
         if(!res.headersSent){
