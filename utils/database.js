@@ -7,8 +7,6 @@ export const createConnectionPool = async (config) => {
   try {
     testConnection = await pool.getConnection()
 
-    testConnection.query('SELECT 1')
-    
     return pool
   } catch(err) {
     throw(err)
@@ -18,6 +16,4 @@ export const createConnectionPool = async (config) => {
       testConnection.release()
     }
   }
-
-  return null;
 }

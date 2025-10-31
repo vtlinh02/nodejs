@@ -2,12 +2,16 @@ import * as http from 'node:http'
 import {stat} from 'node:fs/promises'
 import * as fs from 'node:fs'
 import path from 'node:path'
-import * as mysql from 'mysql2/promises'
+import {createConnectionPool} from '../utils/database.js'
 
 const PORT = 8000
-const DB_URI = 'jdbc:mysql://localhost:3306/java'
+const DB_HOST = 'localhost'
+const DB_PORT = '3306'
+const DB_USERNAME = 'root'
+const DB_PASSWORD = 'Vutuanlinh2002@'
+const DB_DATABASE = 'hibernate_demo'
 
-const pool = mysql.createPool(DB_URI)
+let pool = null;
 
 const requestHandle = async (req , res) => {
   // 1. Health-check API
@@ -94,10 +98,46 @@ const requestHandle = async (req , res) => {
     }
   }
 
+  // 3. Get data from database
+  if(req.method === 'GET' && req.url.includes('/api/')){
+    const endpoint = req.url.substring('/api/'.length)
+    
+    switch(endpoint){
+      case 'users': 
+        const [rows] = await pool.query('SELECT * FROM users')
+
+        const payload = JSON.stringify({data: rows})
+
+        res.writeHead(200, {
+          'Content-Length': Buffer.byteLength(payload, 'utf-8'),
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        })
+
+        res.end(payload)
+    }
+  }
+
 };
 
-const server = http.createServer(requestHandle)
+async function main(){
+  try {
+    pool = await createConnectionPool({
+      host: DB_HOST,
+      port: DB_PORT,
+      user: DB_USERNAME,
+      password: DB_PASSWORD,
+      database: DB_DATABASE,
+    })
 
-server.listen(PORT, () => {
-  console.log(`Server is listening on ${PORT}`)
+    const server = http.createServer(requestHandle)
+
+    server.listen(PORT, () => {
+    console.log(`Server is listening on ${PORT}`)
 })
+  } catch(err) {
+    console.log('Database connection ERROR')
+  }
+}
+
+main()
