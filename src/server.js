@@ -3,13 +3,14 @@ import {stat} from 'node:fs/promises'
 import * as fs from 'node:fs'
 import path from 'node:path'
 import {createConnectionPool} from '../utils/database.js'
+import {readJsonBody} from '../utils/readJsonBody.js'
 
 const PORT = 8000
 const DB_HOST = 'localhost'
 const DB_PORT = '3306'
 const DB_USERNAME = 'root'
-const DB_PASSWORD = 'Vutuanlinh2002@'
-const DB_DATABASE = 'hibernate_demo'
+const DB_PASSWORD = 'vutuanlinh2002'
+const DB_DATABASE = 'java'
 
 let pool = null;
 
@@ -116,6 +117,29 @@ const requestHandle = async (req , res) => {
 
         res.end(payload)
     }
+  }
+
+  // 4. Social media implementation
+  if(req.method === 'POST' && req.url === '/test'){
+    
+    readJsonBody(req)
+      .then(response => {
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        })
+
+        const payload = JSON.stringify(response.data)
+
+        res.end(payload)
+      })
+      .catch((err) => {
+        res.writeHead(500, {
+          'Content-Type': 'text/plain; charset=utf-8'
+        })
+
+        res.end(err.message)
+      })
   }
 
 };
